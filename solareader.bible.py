@@ -82,6 +82,7 @@ class SolaReaderApp(QMainWindow):
         self.current_verse = 1
         self.db_path = None
         self.conn = None
+        self.initialized = False  # Flag to track if initialization is complete
 
         self.load_config()
         self.load_translation()
@@ -90,6 +91,9 @@ class SolaReaderApp(QMainWindow):
         if self.conn:
             self.load_books()
             self.update_book_combo()
+        
+        # Only update display after everything is initialized
+        self.initialized = True
         self.update_display()
 
     def load_translation(self):
@@ -288,11 +292,22 @@ class SolaReaderApp(QMainWindow):
             self.update_display()
 
     def update_display(self):
+        # Only update if initialization is complete
+        if not self.initialized:
+            return
+            
         self.load_bible_text()
         self.update_status()
 
     def load_books(self):
         """Load book list from the module's BOOKS table and verses table"""
+        # Reset book data
+        self.book_names = []
+        self.book_numbers = []
+        self.book_number_to_index = {}
+        self.verse_book_numbers = []
+        self.books_to_verses_map = {}
+        
         if not self.conn:
             # Use default books if no connection
             self.book_names = DEFAULT_BOOK_NAMES.copy()
@@ -326,14 +341,12 @@ class SolaReaderApp(QMainWindow):
                     print(f"Error querying 'books_all' table: {e2}")
                     # If neither table exists, create books from verses table
                     books = []
-                    for book_num in self.verse_book_numbers:
-                        # Find the default name for this book number
-                        book_name = "Unknown"
-                        for i, num in enumerate(DEFAULT_BOOK_NAMES):
-                            # Try to match by position in the list
-                            if i < len(self.verse_book_numbers) and self.verse_book_numbers[i] == book_num:
-                                book_name = DEFAULT_BOOK_NAMES[i]
-                                break
+                    for i, book_num in enumerate(self.verse_book_numbers):
+                        # Use default name if available
+                        if i < len(DEFAULT_BOOK_NAMES):
+                            book_name = DEFAULT_BOOK_NAMES[i]
+                        else:
+                            book_name = f"Book {book_num}"
                         books.append((book_num, book_name[:3], book_name))
                     print("Created books from verses table")
 
@@ -423,6 +436,7 @@ class SolaReaderApp(QMainWindow):
 
     def load_bible_text(self):
         if not self.conn or not self.book_numbers:
+            self.bible_view.setHtml(f"<p>{self.tr('No database loaded.')}</p>")
             return
 
         # Get the actual book number from our loaded mapping
