@@ -266,96 +266,66 @@ class SolaReaderApp(QMainWindow):
             self.update_display()
 
     def update_display(self):
-        # Validar índice del libro
-        if self.current_book_idx >= len(self.book_names):
-            self.current_book_idx = 0
-            self.book_combo.setCurrentIndex(0)
-    
-        # Validar capítulo
-        book_number = self.book_numbers[self.current_book_idx]
-        max_chapter = self.get_max_chapter(book_number)
-        if self.current_chapter > max_chapter:
-            self.current_chapter = 1
-            self.chapter_spin.setValue(1)
-            self.verse_spin.setValue(1)
-    
         self.load_bible_text()
         self.update_status()
-        
-    def get_max_chapter(self, book_number):
-        """Obtiene el número máximo de capítulos para un libro"""
-        try:
-            cursor = self.conn.cursor()
-            cursor.execute("SELECT MAX(chapter) FROM verses WHERE book_number = ?", (book_number,))
-            result = cursor.fetchone()[0]
-            return result if result else 1
-        except:
-            return 150  # valor por defecto
 
     def load_books(self):
-        """Carga los libros DIRECTAMENTE desde la base de datos, sin depender de listas fijas"""
+        """Load book list from the module's BOOKS table"""
         if not self.conn:
+            # Use default books if no connection
+            self.book_names = DEFAULT_BOOK_NAMES.copy()
+            self.book_numbers = list(range(1, len(DEFAULT_BOOK_NAMES) + 1))
+            self.book_number_to_index = {num: i for i, num in enumerate(self.book_numbers)}
             return
-    
+
         try:
             cursor = self.conn.cursor()
-    
-            # Primero intentar con la tabla 'books' (oficial)
+            
+            # Try to get books from BOOKS table first
             try:
-                cursor.execute("SELECT book_number, long_name FROM books ORDER BY book_number")
-                rows = cursor.fetchall()
-                if rows:
-                    self.book_names = [row[1] for row in rows]
-                    self.book_numbers = [row[0] for row in rows]
-                    print(f"✅ Cargados {len(self.book_names)} libros desde tabla 'books'")
-                    for i, (bn, name) in enumerate(self.book_names):
-                        print(f"  {i}: {bn} - {name}")
-                    return
-            except sqlite3.OperationalError:
-                pass  # No existe la tabla 'books'
-    
-            # Si no, extraer de 'verses' (método seguro)
-            cursor.execute("SELECT DISTINCT book_number FROM verses ORDER BY book_number")
-            book_numbers = [row[0] for row in cursor.fetchall()]
-    
-            self.book_names = []
-            self.book_numbers = []
-    
-            # Mapeo común de nombres (por número base, no índice)
-            NAME_MAP = {
-                10: "Genesis", 20: "Exodus", 30: "Leviticus", 40: "Numbers", 50: "Deuteronomy",
-                60: "Joshua", 70: "Judges", 80: "Ruth", 90: "1 Samuel", 100: "2 Samuel",
-                110: "1 Kings", 120: "2 Kings", 130: "1 Chronicles", 140: "2 Chronicles",
-                150: "Ezra", 160: "Nehemiah", 190: "Esther", 220: "Job", 230: "Psalms",
-                240: "Proverbs", 250: "Ecclesiastes", 260: "Song of Solomon", 290: "Isaiah",
-                300: "Jeremiah", 310: "Lamentations", 330: "Ezekiel", 340: "Daniel",
-                350: "Hosea", 360: "Joel", 370: "Amos", 380: "Obadiah", 390: "Jonah",
-                400: "Micah", 410: "Nahum", 420: "Habakkuk", 430: "Zephaniah", 440: "Haggai",
-                450: "Zechariah", 460: "Malachi", 470: "Matthew", 480: "Mark", 490: "Luke",
-                500: "John", 510: "Acts", 520: "Romans", 530: "1 Corinthians", 540: "2 Corinthians",
-                550: "Galatians", 560: "Ephesians", 570: "Philippians", 580: "Colossians",
-                590: "1 Thessalonians", 600: "2 Thessalonians", 610: "1 Timothy", 620: "2 Timothy",
-                630: "Titus", 640: "Philemon", 650: "Hebrews", 660: "James", 670: "1 Peter",
-                680: "2 Peter", 690: "1 John", 700: "2 John", 710: "3 John", 720: "Jude", 730: "Revelation"
-            }
-    
-            for bn in book_numbers:
-                name = NAME_MAP.get(bn, f"Libro {bn}")
-                self.book_names.append(name)
-                self.book_numbers.append(bn)
-    
-            print(f"✅ Cargados {len(self.book_names)} libros desde 'verses'")
-            for i, (bn, name) in enumerate(zip(self.book_numbers, self.book_names)):
-                print(f"  {i}: {bn} - {name}")
-    
+                cursor.execute("SELECT book_number, short_name, long_name FROM books ORDER BY book_number")
+                books = cursor.fetchall()
+            except:
+                # If BOOKS table doesn't exist, try books_all table
+                try:
+                    cursor.execute("SELECT book_number, short_name, long_name FROM books_all WHERE is_present = 1 ORDER BY book_number")
+                    books = cursor.fetchall()
+                except:
+                    # If neither table exists, scan verses table to find available books
+                    cursor.execute("SELECT DISTINCT book_number FROM verses ORDER BY book_number")
+                    verse_books = cursor.fetchall()
+                    books = []
+                    for book_num_row in verse_books:
+                        book_num = book_num_row[0]
+                        # Use default name if available, otherwise create generic name
+                        if 1 <= book_num <= len(DEFAULT_BOOK_NAMES):
+                            book_name = DEFAULT_BOOK_NAMES[book_num - 1]
+                        else:
+                            book_name = f"Book {book_num}"
+                        books.append((book_num, book_name[:3], book_name))
+
+            if books:
+                # Create book mapping
+                self.book_numbers = [book[0] for book in books]
+                self.book_names = [book[2] if book[2] else book[1] for book in books]  # Use long_name or short_name
+                
+                # Create mapping from book_number to index
+                self.book_number_to_index = {book[0]: i for i, book in enumerate(books)}
+                
+                print(f"Loaded {len(self.book_names)} books from module")
+                print(f"Book numbers: {self.book_numbers[:5]}...")  # Show first 5 for debugging
+            else:
+                # Fallback to default if no books found
+                self.book_names = DEFAULT_BOOK_NAMES.copy()
+                self.book_numbers = list(range(1, len(DEFAULT_BOOK_NAMES) + 1))
+                self.book_number_to_index = {num: i for i, num in enumerate(self.book_numbers)}
+                
         except Exception as e:
-            print(f"❌ Error cargando libros: {e}")
-            # Fallback extremo
-            self.book_names = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
-                            "1 Chronicles", "2 Chronicles", "Job", "Psalms", "Proverbs",
-                            "Isaiah", "Jeremiah", "Ezekiel", "Acts"]
-            self.book_numbers = [10, 20, 30, 40, 50, 130, 140, 220, 230, 240, 290, 300, 330, 510]
-            print("⚠️  Usando lista mínima de respaldo")
+            print(f"Error loading books: {e}")
+            # Fallback to default books
+            self.book_names = DEFAULT_BOOK_NAMES.copy()
+            self.book_numbers = list(range(1, len(DEFAULT_BOOK_NAMES) + 1))
+            self.book_number_to_index = {num: i for i, num in enumerate(self.book_numbers)}
 
     def load_module_config(self):
         """Load module-specific configuration from INFO table"""
@@ -449,23 +419,16 @@ class SolaReaderApp(QMainWindow):
             self.bible_view.setHtml(f"<p style='color:red;'>{self.tr('Error: {0}').format(str(e))}</p>")
 
     def on_navigate(self):
-        # Detectar si cambió el libro
+        # Detect if book changed
         new_book_idx = self.book_combo.currentIndex()
-        book_changed = (new_book_idx != self.current_book_idx)
-    
-        # Actualizar índices
-        self.current_book_idx = new_book_idx
-    
-        # Solo actualizar capítulo y versículo del spinbox si NO cambió el libro
-        if book_changed:
+        if new_book_idx != self.current_book_idx:
             self.current_chapter = 1
             self.current_verse = 1
-            self.chapter_spin.setValue(1)
-            self.verse_spin.setValue(1)
-        else:
-            self.current_chapter = self.chapter_spin.value()
-            self.current_verse = self.verse_spin.value()
-    
+
+        self.current_book_idx = new_book_idx
+        self.current_chapter = self.chapter_spin.value()
+        self.current_verse = self.verse_spin.value()
+
         self.update_display()
 
     def on_verse_click(self, url):
