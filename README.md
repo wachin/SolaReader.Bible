@@ -6,9 +6,8 @@
 
 A program to Study the Bible working with MyBible Modules
 
-# SolaReader - Bible Reader for Linux
+# SolaReader - Bible Reader for Linux (in early development)
 
-![SolaReader Logo](https://i.imgur.com/placeholder.png) *(Note: Add actual logo if available)*
 
 SolaReader is a modern, open-source Bible reader application for Linux systems. It's designed to work with MyBible modules in SQLite format, providing a clean and intuitive interface for reading and studying the Bible.
 
@@ -28,23 +27,31 @@ SolaReader is a modern, open-source Bible reader application for Linux systems. 
 - **RAM**: Minimum 512MB, Recommended 1GB+
 - **Disk Space**: 50MB for application + space for Bible modules
 
-## Installation``
+## Install Dependencies:
 
-### Manual Installation
-
-1. **Install Dependencies**:
    ```bash
-   sudo apt update
+   sudo apt update && sudo apt upgrade
    sudo apt install python3 python3-pyqt6 qttools5-dev-tools sqlite3
    ```
 
-2. **Download or clone the program**
+## 🚀 How to use the program   
 
+### **1st OPTION: Download the repository**
+Go to:
 
-https://github.com/wachin/SolaReader.Bible
+[https://github.com/wachin/SolaReader.Bible](https://github.com/wachin/SolaReader.Bible)
 
+click on the arrow-like dropdown in Code:
 
-### Method 3: Running from Source
+**<>  Code ▼**
+
+and click on:
+
+**Download ZIP**
+
+decompress it, and there inside the folder is the `solareader.bible.py` file. Open a terminal there
+
+### **2nd OPTION: Clone the repository**
 
 1. **Clone the Repository**:
    ```bash
@@ -52,12 +59,8 @@ https://github.com/wachin/SolaReader.Bible
    cd SolaReader.Bible
    ```
 
-2. **Install Dependencies**:
-   ```bash
-   sudo apt install python3 python3-pyqt6 qttools5-dev-tools sqlite3
-   ```
+## **Run the Application**
 
-3. **Run the Application**:
    ```bash
    python3 solareader.bible.py
    ```
@@ -67,6 +70,8 @@ https://github.com/wachin/SolaReader.Bible
 ### First Launch
 
 1. **Navigate the Bible**:
+
+   - By default the program open the King James Version of the Bible 
    - Use the toolbar to select books, chapters, and verses
    - Click on verse numbers to navigate directly
    - Use bookmarks to save your place
@@ -74,8 +79,16 @@ https://github.com/wachin/SolaReader.Bible
 ### Adding Bible Translations
 
 1. **Download MyBible Modules**:
-   - Visit [MyBible.zone](https://mybible.zone/) to download free Bible modules
-   - Look for `.SQLite3` files (e.g., `KJV+.SQLite3`)
+   - Visit to download Bible modules on english:
+
+[https://www.ph4.org/b4_1.php?l=en](https://www.ph4.org/b4_1.php?l=en)
+
+  - Visit to download Bible modules on spanish:
+
+[https://www.ph4.org/b4_1.php?l=es](https://www.ph4.org/b4_1.php?l=es)
+   
+
+   - The download is `.SQLite3` files (e.g., `KJV+.SQLite3`)
 
 2. **Install Modules**:
    - Put your modules in folder:
