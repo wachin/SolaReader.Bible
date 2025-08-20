@@ -1,5 +1,6 @@
 # Modules
 data/RVR60.SQLite3
+data/NTV.SQLite3
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
