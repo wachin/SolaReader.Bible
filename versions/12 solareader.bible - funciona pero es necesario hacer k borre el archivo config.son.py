@@ -310,33 +310,16 @@ class SolaReaderApp(QMainWindow):
             self, self.tr("Open translation"), "", "SQLite Files (*.sqlite *.db *.sqlite3)"
         )
         if path:
-            # Reset all book-related data
-            self.book_names = []
-            self.book_numbers = []
-            self.book_number_to_index = {}
-            self.verse_book_numbers = []
-            self.books_to_verses_map = {}
-            
             self.current_translation = path
             self.open_database()
-            
             if self.conn:
                 self.load_books()
                 self.update_book_combo()
-                
-                # Load module-specific configuration
-                self.load_module_config_from_file()
-                
-                # Validate and adjust current position
-                self.validate_current_position()
-                
-                self.update_display()
-            
+            self.update_display()
             # Reset navigation history when opening new translation
             self.navigation_history = []
             self.current_history_index = -1
             self.add_to_history()
-            
             # Save configuration for the new translation
             self.save_config()
 
@@ -463,65 +446,6 @@ class SolaReaderApp(QMainWindow):
         except Exception as e:
             print(f"Error loading module config: {e}")
             # Table might not exist in older formats
-
-    def load_module_config_from_file(self):
-        """Load module-specific configuration from config file"""
-        try:
-            if CONFIG_FILE.exists():
-                with open(CONFIG_FILE, "r", encoding="utf-8") as f:
-                    config = json.load(f)
-                
-                modules_config = config.get("modules", {})
-                module_config = modules_config.get(self.current_translation, {})
-                
-                # Try to find the book by name in the loaded books
-                saved_book_name = module_config.get("book_name", "")
-                if saved_book_name and saved_book_name in self.book_names:
-                    self.current_book_idx = self.book_names.index(saved_book_name)
-                else:
-                    # Fallback to first book if saved book not found
-                    self.current_book_idx = 0
-                
-                self.current_chapter = module_config.get("chapter", 1)
-                self.current_verse = module_config.get("verse", 1)
-                
-                # Apply window settings
-                window_config = module_config.get("window", {})
-                if window_config:
-                    self.resize(window_config.get("width", 1000), window_config.get("height", 700))
-                    self.move(window_config.get("x", 100), window_config.get("y", 100))
-        except Exception as e:
-            print(f"Error loading module config from file: {e}")
-
-    def validate_current_position(self):
-        """Validate that current position is valid for the loaded module"""
-        # Validate book index
-        if self.current_book_idx >= len(self.book_names):
-            self.current_book_idx = 0
-        
-        # Validate chapter
-        if self.current_book_idx < len(self.book_numbers):
-            book_number = self.book_numbers[self.current_book_idx]
-            verse_book_number = self.books_to_verses_map.get(book_number, book_number)
-            
-            try:
-                cursor = self.conn.cursor()
-                cursor.execute("SELECT MAX(chapter) FROM verses WHERE book_number = ?", (verse_book_number,))
-                max_chapter = cursor.fetchone()[0] or 1
-                
-                if self.current_chapter > max_chapter:
-                    self.current_chapter = 1
-                
-                # Validate verse
-                cursor.execute("SELECT MAX(verse) FROM verses WHERE book_number = ? AND chapter = ?", 
-                             (verse_book_number, self.current_chapter))
-                max_verse = cursor.fetchone()[0] or 1
-                
-                if self.current_verse > max_verse:
-                    self.current_verse = 1
-            except:
-                self.current_chapter = 1
-                self.current_verse = 1
 
     def update_book_combo(self):
         """Update the book combo box with loaded books"""
@@ -837,7 +761,7 @@ class SolaReaderApp(QMainWindow):
                         
                         # Create module config from old settings
                         module_config = {
-                            "book_name": "Genesis",  # Default book name
+                            "book": existing_config.get("book", 0),
                             "chapter": existing_config.get("chapter", 1),
                             "verse": existing_config.get("verse", 1),
                             "window": existing_config.get("window", {
@@ -867,6 +791,25 @@ class SolaReaderApp(QMainWindow):
                         self.current_translation = str(default_path)
                         break
             
+            # Load module-specific settings
+            modules_config = config.get("modules", {})
+            module_config = modules_config.get(self.current_translation, {
+                "book": 0,
+                "chapter": 1,
+                "verse": 1,
+                "window": {"x": 100, "y": 100, "width": 1000, "height": 700}
+            })
+            
+            self.current_book_idx = module_config.get("book", 0)
+            self.current_chapter = module_config.get("chapter", 1)
+            self.current_verse = module_config.get("verse", 1)
+            
+            # Apply window settings
+            window_config = module_config.get("window", {})
+            if window_config:
+                self.resize(window_config.get("width", 1000), window_config.get("height", 700))
+                self.move(window_config.get("x", 100), window_config.get("y", 100))
+                
         except Exception as e:
             print(f"Error loading configuration: {e}")
             # Use defaults
@@ -898,15 +841,9 @@ class SolaReaderApp(QMainWindow):
             if "modules" not in config:
                 config["modules"] = {}
             
-            # Get current book name
-            if self.current_book_idx < len(self.book_names):
-                current_book_name = self.book_names[self.current_book_idx]
-            else:
-                current_book_name = "Genesis"
-            
             # Update module-specific settings
             module_config = {
-                "book_name": current_book_name,
+                "book": self.current_book_idx,
                 "chapter": self.current_chapter,
                 "verse": self.current_verse,
                 "window": {
