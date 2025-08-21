@@ -64,6 +64,8 @@ decompress it, and there inside the folder is the `solareader.bible.py` file. Op
    ```bash
    python3 solareader.bible.py
    ```
+   
+![SolaReader.Bible.png](pictures/001-SolaReader.Bible.png)
 
 ## Getting Started
 
