@@ -1,4 +1,4 @@
-# solareader.bible
+# SolaReader Bible
 
 ![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)
 ![Python: 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue.svg)
