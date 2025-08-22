@@ -9,7 +9,7 @@ A program to Study the Bible working with MyBible Modules
 # SolaReader - Bible Reader for Linux (in early development)
 
 
-SolaReader is a modern, open-source Bible reader application for Linux systems. It's designed to work with MyBible modules in SQLite format, providing a clean and intuitive interface for reading and studying the Bible.
+SolaReader is a modern, open-source Bible reader application for Linux systems. It's designed to work with [MyBible](https://mybible.zone/) modules in SQLite format, providing a clean and intuitive interface for reading and studying the Bible.
 
 ## Features
 
