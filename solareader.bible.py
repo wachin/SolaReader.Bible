@@ -66,8 +66,8 @@ class SolaReaderApp(QMainWindow):
         
         # Default path - try multiple locations
         self.default_db_paths = [
-            Path("/data/KJV+.SQLite3"),  # Absolute path
-            Path(__file__).parent / "data" / "KJV+.SQLite3",  # Relative path
+            Path("/data/KJV1611.SQLite3"),  # Absolute path
+            Path(__file__).parent / "data" / "KJV1611.SQLite3",  # Relative path
         ]
         self.current_translation = str(self.default_db_paths[0])
         
