@@ -1,4 +1,4 @@
-# solareader.bible
+# SolaReader Bible
 
 ![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)
 ![Python: 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue.svg)
@@ -15,8 +15,8 @@ SolaReader is a modern, open-source Bible reader application for Linux systems. 
 
 - **Multi-Translation Support**: Read from multiple Bible translations in SQLite format
 - **Book Navigation**: Easy navigation between books, chapters, and verses
-- **Search Functionality**: Search the entire Bible for specific words or phrases
-- **Bookmarks**: Save and organize your favorite verses
+- **Search Functionality**: Still the Search the entire Bible for specific words or phrases not work
+- **Bookmarks**: Save and organize your favorite verses still not work
 - **Multi-Language UI**: Support for multiple interface languages
 - **Cross-Platform**: Built with PyQt6 for a native look and feel
 
@@ -183,8 +183,8 @@ SolaReader is released under the GNU General Public License v3.0. See the [LICEN
 ### Version 1.0.0 (2025)
 - Initial release
 - Support for MyBible SQLite modules
-- Basic navigation and search functionality
-- Bookmark system
+- Basic navigation
+- Bookmark and Search option not work
 - Multi-language interface support
 
 ---
