@@ -17,8 +17,8 @@ from PyQt6.QtGui import QAction, QFont, QDesktopServices
 
 # ─── CONFIGURATION ─────────────────────────────────────────────────────────────
 CONFIG_DIR = Path.home() / ".config" / "solareader"
-CONFIG_FILE = CONFIG_DIR / "config.json"
-BOOKMARKS_FILE = CONFIG_DIR / "bookmarks.json"
+CONFIG_FILE = CONFIG_DIR / "config1.json"
+BOOKMARKS_FILE = CONFIG_DIR / "bookmarks1.json"
 TRANSLATIONS_DIR = Path(__file__).parent / "translations"
 
 # Default book names (fallback)
@@ -57,7 +57,7 @@ AVAILABLE_LANGUAGES = {
 class SolaReaderApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("SolaReader - Bible Reader")
+        self.setWindowTitle("SolaReader1 - Bible Reader")
         self.resize(1000, 700)
         
         # Translation system
@@ -458,7 +458,7 @@ class SolaReaderApp(QMainWindow):
             module_language = config.get("language", "en")
             
             # Update window title
-            self.setWindowTitle(f"SolaReader - {self.module_description}")
+            self.setWindowTitle(f"SolaReader1 - {self.module_description}")
             
         except Exception as e:
             print(f"Error loading module config: {e}")
